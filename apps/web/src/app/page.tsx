@@ -1,13 +1,11 @@
 "use client";
-import { useQuery } from "@tanstack/react-query";
-import { trpc } from "@/utils/trpc";
+
+import { DepositForm } from "@/components/deposit-form";
 
 export default function Home() {
-	const healthCheck = useQuery(trpc.healthCheck.queryOptions());
-
 	return (
-		<div>
-			{healthCheck.data ? <h1>{healthCheck.data}</h1> : <h1>Disconnected</h1>}
+		<div className="container mx-auto p-4 py-12">
+			<DepositForm />
 		</div>
 	);
 }
