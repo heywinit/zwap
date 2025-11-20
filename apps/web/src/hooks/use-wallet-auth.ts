@@ -4,90 +4,103 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import bs58 from "bs58";
 import { useCallback, useEffect, useState } from "react";
-import { queryClient, trpc } from "@/utils/trpc";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, trpc, trpcClient } from "@/utils/trpc";
 
 export function useWalletAuth() {
-	const { publicKey, signMessage, connected, disconnect } = useWallet();
-	const { setVisible } = useWalletModal();
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { publicKey, signMessage, connected, disconnect } = useWallet();
+  const { setVisible } = useWalletModal();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-	const { data: session } = trpc.auth.getSession.useQuery(undefined, {
-		enabled: true,
-	});
+  const { data: session } = useQuery(trpc.auth.getSession.queryOptions());
 
-	const signInMutation = trpc.auth.signIn.useMutation();
-	const signOutMutation = trpc.auth.signOut.useMutation();
+  const signInMutation = useMutation({
+    mutationFn: async (input: {
+      publicKey: string;
+      signature: string;
+      message: string;
+      timestamp?: number;
+    }) => {
+      return await trpcClient.auth.signIn.mutate(input);
+    },
+    onSuccess: async (result) => {
+      if (result.success) {
+        setIsAuthenticated(true);
+        localStorage.setItem("solana_session", JSON.stringify(result.session));
+        await queryClient.invalidateQueries({
+          queryKey: [["auth", "getSession"]],
+        });
+      }
+    },
+  });
 
-	// Check if user is authenticated
-	useEffect(() => {
-		if (session && publicKey && session.publicKey === publicKey.toString()) {
-			setIsAuthenticated(true);
-		} else {
-			setIsAuthenticated(false);
-		}
-	}, [session, publicKey]);
+  const signOutMutation = useMutation({
+    mutationFn: async () => {
+      return await trpcClient.auth.signOut.mutate();
+    },
+    onSuccess: async () => {
+      localStorage.removeItem("solana_session");
+      setIsAuthenticated(false);
+      await disconnect();
+      await queryClient.invalidateQueries({
+        queryKey: [["auth", "getSession"]],
+      });
+    },
+  });
 
-	const signIn = useCallback(async () => {
-		if (!publicKey || !signMessage) {
-			setVisible(true);
-			return;
-		}
+  // Check if user is authenticated
+  useEffect(() => {
+    if (session && publicKey && session.publicKey === publicKey.toString()) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, [session, publicKey]);
 
-		try {
-			// Create a message to sign
-			const timestamp = Date.now();
-			const message = `Sign in to ZWAP\n\nTimestamp: ${timestamp}`;
+  const signIn = useCallback(async () => {
+    if (!publicKey || !signMessage) {
+      setVisible(true);
+      return;
+    }
 
-			// Request signature from wallet
-			const encodedMessage = new TextEncoder().encode(message);
-			const signature = await signMessage(encodedMessage);
-			const signatureBase58 = bs58.encode(signature);
+    try {
+      // Create a message to sign
+      const timestamp = Date.now();
+      const message = `Sign in to ZWAP\n\nTimestamp: ${timestamp}`;
 
-			// Send to backend for verification
-			const result = await signInMutation.mutateAsync({
-				publicKey: publicKey.toString(),
-				signature: signatureBase58,
-				message,
-				timestamp,
-			});
+      // Request signature from wallet
+      const encodedMessage = new TextEncoder().encode(message);
+      const signature = await signMessage(encodedMessage);
+      const signatureBase58 = bs58.encode(signature);
 
-			if (result.success) {
-				setIsAuthenticated(true);
-				// Store session in localStorage as fallback
-				localStorage.setItem("solana_session", JSON.stringify(result.session));
-				// Invalidate session query to refetch
-				await queryClient.invalidateQueries({
-					queryKey: [["auth", "getSession"]],
-				});
-			}
-		} catch (error) {
-			console.error("Sign in failed:", error);
-			throw error;
-		}
-	}, [publicKey, signMessage, setVisible, signInMutation]);
+      // Send to backend for verification
+      await signInMutation.mutateAsync({
+        publicKey: publicKey.toString(),
+        signature: signatureBase58,
+        message,
+        timestamp,
+      });
+    } catch (error) {
+      console.error("Sign in failed:", error);
+      throw error;
+    }
+  }, [publicKey, signMessage, setVisible, signInMutation]);
 
-	const signOut = useCallback(async () => {
-		try {
-			await signOutMutation.mutateAsync();
-			localStorage.removeItem("solana_session");
-			setIsAuthenticated(false);
-			await disconnect();
-			// Invalidate session query to refetch
-			await queryClient.invalidateQueries({
-				queryKey: [["auth", "getSession"]],
-			});
-		} catch (error) {
-			console.error("Sign out failed:", error);
-		}
-	}, [disconnect, signOutMutation]);
+  const signOut = useCallback(async () => {
+    try {
+      await signOutMutation.mutateAsync();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+  }, [signOutMutation]);
 
-	return {
-		publicKey,
-		connected,
-		isAuthenticated,
-		isLoading: signInMutation.isPending || signOutMutation.isPending,
-		signIn,
-		signOut,
-		session,
-	};
+  return {
+    publicKey,
+    connected,
+    isAuthenticated,
+    isLoading: signInMutation.isPending || signOutMutation.isPending,
+    signIn,
+    signOut,
+    session,
+  };
 }

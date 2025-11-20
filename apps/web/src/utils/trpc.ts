@@ -5,41 +5,41 @@ import type { AppRouter } from "@zwap/api/routers/index";
 import { toast } from "sonner";
 
 export const queryClient = new QueryClient({
-	queryCache: new QueryCache({
-		onError: (error) => {
-			toast.error(error.message, {
-				action: {
-					label: "retry",
-					onClick: () => {
-						queryClient.invalidateQueries();
-					},
-				},
-			});
-		},
-	}),
+  queryCache: new QueryCache({
+    onError: (error) => {
+      toast.error(error.message, {
+        action: {
+          label: "retry",
+          onClick: () => {
+            queryClient.invalidateQueries();
+          },
+        },
+      });
+    },
+  }),
 });
 
-const trpcClient = createTRPCClient<AppRouter>({
-	links: [
-		httpBatchLink({
-			url: "/api/trpc",
-			headers() {
-				// Send session in Authorization header as fallback
-				if (typeof window !== "undefined") {
-					const session = localStorage.getItem("solana_session");
-					if (session) {
-						return {
-							authorization: `Bearer ${session}`,
-						};
-					}
-				}
-				return {};
-			},
-		}),
-	],
+export const trpcClient = createTRPCClient<AppRouter>({
+  links: [
+    httpBatchLink({
+      url: "/api/trpc",
+      headers() {
+        // Send session in Authorization header as fallback
+        if (typeof window !== "undefined") {
+          const session = localStorage.getItem("solana_session");
+          if (session) {
+            return {
+              authorization: `Bearer ${session}`,
+            };
+          }
+        }
+        return {};
+      },
+    }),
+  ],
 });
 
 export const trpc = createTRPCOptionsProxy<AppRouter>({
-	client: trpcClient,
-	queryClient,
+  client: trpcClient,
+  queryClient,
 });
