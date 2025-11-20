@@ -1,32 +1,31 @@
 {
-  "name": "@zwap/solana",
-  "version": "0.1.0",
-  "type": "module",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "scripts": {
-    "build": "anchor build",
-    "test": "anchor test",
-    "deploy": "anchor deploy",
-    "localnet": "solana-test-validator"
-  },
-  "devDependencies": {
-    "@zwap/config": "workspace:*"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@solana/web3.js": "^1.95.8",
-    "@coral-xyz/anchor": "^0.30.1",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
-  }
+	"name": "@zwap/solana",
+	"version": "0.1.0",
+	"type": "module",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"scripts": {
+		"build": "anchor build",
+		"test": "anchor test",
+		"deploy": "anchor deploy",
+		"localnet": "solana-test-validator"
+	},
+	"devDependencies": {
+		"@zwap/config": "workspace:*"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@solana/web3.js": "^1.95.8",
+		"@coral-xyz/anchor": "^0.30.1",
+		"dotenv": "catalog:",
+		"zod": "catalog:"
+	}
 }
-

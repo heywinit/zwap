@@ -1,27 +1,30 @@
 {
-  "name": "@zwap/api",
-  "exports": {
-    ".": {
-      "default": "./src/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
-    }
-  },
-  "type": "module",
-  "scripts": {},
-  "devDependencies": {
-    "@zwap/config": "workspace:*"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
-  "dependencies": {
-    "@trpc/server": "catalog:",
-    "@trpc/client": "catalog:",
-    "next": "catalog:",
-    "dotenv": "catalog:",
-    "zod": "catalog:",
-    "@zwap/db": "workspace:*"
-  }
+	"name": "@zwap/api",
+	"exports": {
+		".": {
+			"default": "./src/index.ts"
+		},
+		"./*": {
+			"default": "./src/*.ts"
+		}
+	},
+	"type": "module",
+	"scripts": {},
+	"devDependencies": {
+		"@zwap/config": "workspace:*"
+	},
+	"peerDependencies": {
+		"typescript": "^5"
+	},
+	"dependencies": {
+		"@trpc/server": "catalog:",
+		"@trpc/client": "catalog:",
+		"next": "catalog:",
+		"dotenv": "catalog:",
+		"zod": "catalog:",
+		"@zwap/db": "workspace:*",
+		"@solana/web3.js": "^1.95.8",
+		"bs58": "^6.0.0",
+		"tweetnacl": "^1.0.3"
+	}
 }

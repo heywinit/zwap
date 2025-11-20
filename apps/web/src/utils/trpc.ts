@@ -23,6 +23,18 @@ const trpcClient = createTRPCClient<AppRouter>({
 	links: [
 		httpBatchLink({
 			url: "/api/trpc",
+			headers() {
+				// Send session in Authorization header as fallback
+				if (typeof window !== "undefined") {
+					const session = localStorage.getItem("solana_session");
+					if (session) {
+						return {
+							authorization: `Bearer ${session}`,
+						};
+					}
+				}
+				return {};
+			},
 		}),
 	],
 });
