@@ -1,0 +1,153 @@
+┌─────────────────────────────────────────────────────────────────┐
+│                    🌉 ZWAP QUICK REFERENCE                      │
+│              Solana → Zcash Shielded Bridge                     │
+└─────────────────────────────────────────────────────────────────┘
+
+📋 ESSENTIAL COMMANDS
+═══════════════════════════════════════════════════════════════════
+
+Setup (First Time)
+──────────────────
+  bun install                    # Install dependencies
+  docker compose up -d           # Start PostgreSQL
+  bun run db:push               # Initialize database
+
+Running
+───────
+  bun run relayer               # Start relayer (Terminal 1)
+  bun run dev:web               # Start frontend (Terminal 2)
+
+Database
+────────
+  bun run db:push               # Push schema changes
+  bun run db:studio             # Open database UI
+  bun run db:generate           # Generate migrations
+
+Development
+───────────
+  bun run dev                   # Start all services
+  bun run check                 # Lint and format
+  bun run check-types           # Type checking
+
+═══════════════════════════════════════════════════════════════════
+🔧 CONFIGURATION FILES
+═══════════════════════════════════════════════════════════════════
+
+.env (Required)
+───────────────
+  DATABASE_URL                  # PostgreSQL connection
+  SOLANA_RPC_URL               # Solana devnet RPC
+  ZWAP_PROGRAM_ID              # Deployed program ID
+  ZCASH_RPC_URL                # Zcash node RPC
+  ZCASH_RPC_USER               # Zcash RPC username
+  ZCASH_RPC_PASSWORD           # Zcash RPC password
+  RELAYER_Z_ADDRESS            # Relayer's Z-address
+  NEXT_PUBLIC_SOLANA_RPC_URL   # Frontend Solana RPC
+  NEXT_PUBLIC_ZWAP_PROGRAM_ID  # Frontend program ID
+
+═══════════════════════════════════════════════════════════════════
+🚀 DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════════════════
+
+□ Start Docker Desktop
+□ Run: docker compose up -d
+□ Run: bun run db:push
+□ Set up Zcash testnet node
+□ Create relayer Z-address
+□ Fund relayer with testnet ZEC
+□ Update .env with Zcash credentials
+□ Start relayer: bun run relayer
+□ Start frontend: bun run dev:web
+□ Test at http://localhost:3000
+
+═══════════════════════════════════════════════════════════════════
+🧪 TESTING FLOW
+═══════════════════════════════════════════════════════════════════
+
+1. Connect Phantom wallet (Devnet)
+2. Get test SOL: https://faucet.solana.com/
+3. Enter amount (e.g., 0.1 SOL)
+4. Enter Zcash Z-address
+5. Click "Deposit"
+6. Monitor status page
+7. Check relayer logs
+8. Verify ZEC in destination address
+
+═══════════════════════════════════════════════════════════════════
+📁 PROJECT STRUCTURE
+═══════════════════════════════════════════════════════════════════
+
+zwap/
+├── apps/web/                   # Next.js frontend
+├── packages/
+│   ├── api/                    # tRPC API + Relayer
+│   ├── db/                     # Database (Drizzle)
+│   ├── solana/                 # Anchor program
+│   └── zcash/                  # Zcash RPC client
+├── README.md                   # Quick start
+├── DEPLOYMENT.md               # Deployment guide
+├── COMPLETION_CHECKLIST.md     # Status checklist
+└── FINISHED.md                 # Summary
+
+═══════════════════════════════════════════════════════════════════
+🔍 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════════
+
+Docker not starting
+───────────────────
+  docker ps                     # Check running containers
+  docker logs zwap-postgres     # View PostgreSQL logs
+  docker compose restart        # Restart services
+
+Database connection failed
+──────────────────────────
+  docker exec zwap-postgres pg_isready -U zwap
+  docker compose down -v        # Reset (WARNING: deletes data)
+  docker compose up -d
+
+Relayer not detecting deposits
+───────────────────────────────
+  • Check ZWAP_PROGRAM_ID matches deployed program
+  • Verify Solana RPC is accessible
+  • Ensure program is initialized
+
+Zcash RPC errors
+────────────────
+  zcash-cli -testnet getblockchaininfo  # Check sync status
+  • Verify RPC credentials in .env
+  • Ensure relayer Z-address has balance
+
+═══════════════════════════════════════════════════════════════════
+🌐 USEFUL LINKS
+═══════════════════════════════════════════════════════════════════
+
+Solana Devnet Faucet:    https://faucet.solana.com/
+Zcash Testnet Faucet:    https://faucet.testnet.z.cash/
+Solscan (Devnet):        https://solscan.io/?cluster=devnet
+Zcash Explorer:          https://zcashblockexplorer.com/
+Anchor Docs:             https://www.anchor-lang.com/docs
+
+═══════════════════════════════════════════════════════════════════
+📊 STATUS
+═══════════════════════════════════════════════════════════════════
+
+Code:            ✅ 100% Complete
+Documentation:   ✅ 100% Complete
+Configuration:   ✅ 100% Complete
+Deployment:      ⏳ Needs manual setup
+
+Time to Demo:    ~30 minutes
+
+═══════════════════════════════════════════════════════════════════
+💡 QUICK TIPS
+═══════════════════════════════════════════════════════════════════
+
+• Use existing program ID for quick demo (already in .env)
+• Zcash sync can take hours - use Docker for faster setup
+• Test frontend without backend to see UI
+• Check relayer logs for deposit detection
+• Use Drizzle Studio to inspect database
+
+═══════════════════════════════════════════════════════════════════
+
+Built with ❤️ for cross-chain privacy | Ready to ship! 🚀

@@ -1,266 +1,184 @@
-# ZWAP - Solana to Zcash Bridge
+# 🌉 ZWAP - Solana to Zcash Shielded Bridge
 
-A privacy-focused bridge that allows users to deposit SOL or USDC on Solana and receive ZEC to their shielded Zcash address.
+A cross-chain bridge that enables private transfers from Solana (SOL/USDC) to Zcash shielded addresses.
 
-## Architecture
+## 🚀 Quick Start
 
-- **Frontend**: Next.js app with Solana wallet integration
-- **Backend API**: tRPC endpoints for deposit management
-- **Solana Program**: Anchor program handling deposits and events
-- **Relayer**: Service monitoring Solana deposits and sending ZEC
-- **Zcash Integration**: RPC client for zcashd operations
-- **Database**: PostgreSQL with Drizzle ORM
+### Prerequisites
+- Node.js 18+ and Bun 1.2+
+- Docker and Docker Compose
+- Solana CLI and Anchor CLI (optional, for program deployment)
 
-## Prerequisites
+### Setup (Windows)
+```powershell
+# Run automated setup
+bun run setup:windows
 
-- Node.js 18+ (using Bun runtime)
-- Rust and Solana CLI tools (for program development)
-- PostgreSQL database
-- Zcash full node (zcashd) with RPC access
-- Solana wallet with devnet SOL
+# Or manually:
+bun install
+docker-compose up -d
+bun run db:push
+```
 
-## Project Structure
+### Setup (Linux/macOS)
+```bash
+# Run automated setup
+chmod +x setup.sh
+./setup.sh
+
+# Or manually:
+bun install
+docker-compose up -d
+bun run db:push
+```
+
+### Configuration
+
+1. **Update `.env`** with your Zcash RPC credentials:
+   ```env
+   ZCASH_RPC_URL=http://localhost:18232
+   ZCASH_RPC_USER=zcashrpc
+   ZCASH_RPC_PASSWORD=your_password
+   RELAYER_Z_ADDRESS=your_z_address
+   ```
+
+2. **Set up Zcash testnet node** (see [DEPLOYMENT.md](DEPLOYMENT.md))
+
+3. **Deploy Solana program** (if not already deployed):
+   ```bash
+   cd packages/solana
+   anchor build
+   anchor deploy --provider.cluster devnet
+   # Update ZWAP_PROGRAM_ID in .env
+   ```
+
+### Running
+
+Start all services:
+
+```bash
+# Terminal 1: Start relayer
+bun run relayer
+
+# Terminal 2: Start frontend
+bun run dev:web
+```
+
+Visit http://localhost:3000
+
+## 📖 Documentation
+
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Detailed deployment guide
+- **[doc.md](doc.md)** - Technical specification
+- **[ARCHITECTURE_VERIFICATION.md](ARCHITECTURE_VERIFICATION.md)** - Architecture review
+
+## 🏗️ Architecture
+
+```
+User Wallet (Phantom)
+        ↓
+    Frontend (Next.js)
+        ↓
+    tRPC API + PostgreSQL
+        ↓
+    Relayer Service
+        ↓
+    Solana Program ←→ Zcash RPC
+```
+
+## 🎯 Features
+
+- ✅ SOL and USDC deposits on Solana
+- ✅ Automatic ZEC transfer to shielded addresses
+- ✅ Real-time status tracking
+- ✅ Event-driven relayer with idempotency
+- ✅ Admin recovery functions
+- ✅ Type-safe API with tRPC
+
+## 🛠️ Development
+
+```bash
+# Database
+bun run db:push          # Push schema
+bun run db:studio        # Open Drizzle Studio
+
+# Development
+bun run dev              # Start all services
+bun run dev:web          # Frontend only
+bun run relayer          # Relayer only
+
+# Code quality
+bun run check            # Lint and format
+bun run check-types      # Type checking
+```
+
+## 📦 Project Structure
 
 ```
 zwap/
 ├── apps/
 │   └── web/              # Next.js frontend
 ├── packages/
-│   ├── api/              # tRPC backend API
-│   │   └── services/     # Relayer and conversion services
-│   ├── db/               # Database schema and migrations
-│   ├── solana/           # Solana program and client SDK
-│   │   └── programs/zwap/ # Anchor program
+│   ├── api/              # tRPC API + Relayer
+│   ├── db/               # Database schema (Drizzle)
+│   ├── solana/           # Anchor program + Client SDK
 │   └── zcash/            # Zcash RPC client
-└── doc.md                # Detailed specification
+├── DEPLOYMENT.md         # Deployment guide
+└── setup.sh/ps1          # Setup scripts
 ```
 
-## Setup
+## 🧪 Testing
 
-### 1. Install Dependencies
+1. Connect Phantom wallet (Devnet)
+2. Get devnet SOL from https://faucet.solana.com/
+3. Enter amount and Zcash Z-address
+4. Submit deposit
+5. Monitor status page for ZEC transfer
 
-```bash
-# Install all dependencies
-bun install
+## ⚠️ Important Notes
 
-# Install Solana program dependencies
-cd packages/solana
-cargo build-sbf
-```
+- **Testnet only** - Not production-ready
+- **Centralized relayer** - Single point of trust
+- **Fixed exchange rates** - Hardcoded for demo
+- **No atomic swaps** - Separate transactions
 
-### 2. Database Setup
+## 🔐 Security
 
-```bash
-# Start PostgreSQL with Docker
-docker-compose up -d
+This is a **hackathon/demo project**. For production:
+- Implement proper key management
+- Add monitoring and alerting
+- Use dynamic exchange rates
+- Conduct security audit
+- Implement multi-relayer setup
 
-# Copy environment variables
-cp .env.example .env
-
-# Update DATABASE_URL in .env
-DATABASE_URL=postgresql://zwap:zwap_dev_password@localhost:5432/zwap
-
-# Generate and run migrations
-cd packages/db
-bun run db:generate
-bun run db:push
-```
-
-### 3. Zcash Node Setup
-
-You need a running zcashd node with RPC access:
-
-```bash
-# Example zcash.conf
-rpcuser=your_rpc_username
-rpcpassword=your_rpc_password
-rpcallowip=127.0.0.1
-rpcport=8232
-testnet=1
-
-# Create a shielded address for the relayer
-zcash-cli z_getnewaddress
-```
-
-Update `.env` with Zcash credentials:
-```
-ZCASH_RPC_URL=http://localhost:8232
-ZCASH_RPC_USER=your_rpc_username
-ZCASH_RPC_PASSWORD=your_rpc_password
-RELAYER_Z_ADDRESS=your_shielded_z_address
-```
-
-### 4. Deploy Solana Program
-
-```bash
-cd packages/solana
-
-# Build the program
-anchor build
-
-# Deploy to devnet
-anchor deploy --provider.cluster devnet
-
-# Update ZWAP_PROGRAM_ID in .env with deployed program ID
-```
-
-### 5. Configure Environment
-
-Update `.env` with all required variables:
-
-```bash
-# Database
-DATABASE_URL=postgresql://zwap:zwap_dev_password@localhost:5432/zwap
-
-# Solana
-SOLANA_RPC_URL=https://api.devnet.solana.com
-ZWAP_PROGRAM_ID=<your_deployed_program_id>
-
-# Zcash
-ZCASH_RPC_URL=http://localhost:8232
-ZCASH_RPC_USER=your_rpc_username
-ZCASH_RPC_PASSWORD=your_rpc_password
-RELAYER_Z_ADDRESS=<your_relayer_z_address>
-
-# Frontend
-NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
-NEXT_PUBLIC_ZWAP_PROGRAM_ID=<your_deployed_program_id>
-```
-
-## Running the Application
-
-### Development Mode
-
-```bash
-# Terminal 1: Start the relayer
-cd packages/api
-bun run src/scripts/start-relayer.ts
-
-# Terminal 2: Start the frontend
-cd apps/web
-bun run dev
-```
-
-### Production Mode
-
-```bash
-# Build all packages
-bun run build
-
-# Start services
-npm run start
-```
-
-## User Flow
-
-1. **Connect Wallet**: User connects Solana wallet to the frontend
-2. **Enter Details**: User selects SOL/USDC, amount, and provides Zcash shielded address
-3. **Create Deposit**: Frontend calls backend to create deposit record
-4. **Sign Transaction**: User signs Solana transaction
-5. **Confirm on Solana**: Transaction is confirmed on Solana blockchain
-6. **Relayer Detects**: Relayer monitors program logs and detects deposit event
-7. **Send ZEC**: Relayer sends equivalent ZEC to user's shielded address
-8. **Status Updates**: User can track status on the status page
-
-## API Endpoints
-
-### tRPC Routes
-
-- `deposit.startDeposit` - Create a new deposit
-- `deposit.getStatus` - Get deposit status by ID
-- `deposit.getBySignature` - Get deposit by Solana transaction signature
-- `deposit.updateSolanaTx` - Update deposit with Solana transaction
-
-## Solana Program Instructions
-
-- `initialize` - Initialize the vault (one-time setup)
-- `deposit_sol` - Deposit SOL to vault
-- `deposit_usdc` - Deposit USDC to vault
-
-## Zcash Integration
-
-The relayer uses zcashd RPC methods:
-- `z_sendmany` - Send ZEC to shielded addresses
-- `z_getoperationstatus` - Check async operation status
-- `z_getoperationresult` - Get operation results
-
-## Security Considerations
-
-⚠️ **Important Security Notes**:
-
-1. **Centralized Relayer**: This is a demo with a single relayer holding ZEC funds
-2. **No Atomic Swaps**: Transactions happen separately on each chain
-3. **Trust Required**: Users must trust the relayer to send ZEC
-4. **Environment Variables**: Never commit `.env` files with real credentials
-5. **Testnet Only**: Use testnet/devnet for development and testing
-
-## Development
-
-### Run Tests
-
-```bash
-# Run all tests
-bun test
-
-# Test specific package
-cd packages/solana
-bun test
-```
-
-### Lint and Format
-
-```bash
-# Lint
-bun run lint
-
-# Format
-bun run format
-```
-
-### Database Migrations
-
-```bash
-cd packages/db
-
-# Generate migration
-bun run db:generate
-
-# Apply migration
-bun run db:push
-
-# Open Drizzle Studio
-bun run db:studio
-```
-
-## Troubleshooting
-
-### Relayer not detecting deposits
-- Check Solana RPC connection
-- Verify program ID matches deployed program
-- Ensure relayer has proper database access
-
-### ZEC not being sent
-- Verify zcashd is running and synced
-- Check relayer Z-address has sufficient balance
-- Verify RPC credentials are correct
-
-### Database connection errors
-- Ensure PostgreSQL is running
-- Check DATABASE_URL format
-- Verify database exists
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
-
-## License
+## 📝 License
 
 MIT
 
-## Support
+## 🤝 Contributing
 
-For issues and questions, please open a GitHub issue.
+This is a hackathon project. Feel free to fork and experiment!
+
+## 🐛 Troubleshooting
+
+**Database connection failed**
+```bash
+docker-compose restart
+docker logs zwap-postgres
+```
+
+**Relayer not detecting deposits**
+- Verify ZWAP_PROGRAM_ID matches deployed program
+- Check Solana RPC connection
+- Ensure program is initialized
+
+**Zcash RPC errors**
+- Verify zcashd is synced
+- Check RPC credentials
+- Ensure relayer Z-address has balance
+
+For more help, see [DEPLOYMENT.md](DEPLOYMENT.md)
+
+---
+
+Built with ❤️ for cross-chain privacy

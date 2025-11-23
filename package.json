@@ -25,7 +25,10 @@
 		"db:push": "turbo -F @zwap/db db:push",
 		"db:studio": "turbo -F @zwap/db db:studio",
 		"db:generate": "turbo -F @zwap/db db:generate",
-		"db:migrate": "turbo -F @zwap/db db:migrate"
+		"db:migrate": "turbo -F @zwap/db db:migrate",
+		"relayer": "cd packages/api && bun run src/scripts/start-relayer.ts",
+		"setup": "bun run setup.sh",
+		"setup:windows": "powershell -ExecutionPolicy Bypass -File setup.ps1"
 	},
 	"dependencies": {
 		"dotenv": "^17.2.2",
