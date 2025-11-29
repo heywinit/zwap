@@ -23,7 +23,11 @@
 		"dotenv": "catalog:",
 		"zod": "catalog:",
 		"@zwap/db": "workspace:*",
+		"@zwap/solana": "workspace:*",
+		"@zwap/zcash": "workspace:*",
 		"@solana/web3.js": "^1.95.8",
+		"drizzle-orm": "^0.44.7",
+		"@coral-xyz/anchor": "^0.32.1",
 		"bs58": "^6.0.0",
 		"tweetnacl": "^1.0.3"
 	}

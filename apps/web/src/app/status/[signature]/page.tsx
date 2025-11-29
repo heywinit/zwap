@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { trpc } from "@/utils/trpc";
+import { useTRPC } from "@/utils/trpc";
 import {
   Card,
   CardContent,
@@ -19,6 +19,7 @@ export default function StatusPage() {
   const params = useParams();
   const signature = params.signature as string;
   const [pollInterval, setPollInterval] = useState(3000); // Poll every 3 seconds
+  const trpc = useTRPC();
 
   // Query deposit status
   const { data: deposit, isLoading, error } = trpc.deposit.getBySignature.useQuery(
