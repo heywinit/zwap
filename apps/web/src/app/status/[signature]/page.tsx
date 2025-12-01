@@ -3,8 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+<<<<<<< HEAD
 import { queryClient, trpcClient } from "@/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
+=======
+import { useTRPC } from "@/utils/trpc";
+>>>>>>> 955ad1ad6763d3a4b209ae503ca137b9bbc11e89
 import {
   Card,
   CardContent,
@@ -20,6 +24,7 @@ export default function StatusPage() {
   const params = useParams();
   const signature = params.signature as string;
   const [pollInterval, setPollInterval] = useState(3000); // Poll every 3 seconds
+  const trpc = useTRPC();
 
   // Query deposit status using trpc client directly
   const { data, isLoading, error } = useQuery({

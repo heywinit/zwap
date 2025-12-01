@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { ZwapClient } from "@zwap/solana";
 import { useWalletAuth } from "@/hooks/use-wallet-auth";
-import { queryClient, trpcClient } from "@/utils/trpc";
+import { useTRPC, trpcClient } from "@/utils/trpc";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -32,6 +32,7 @@ export function DepositForm() {
   const [amount, setAmount] = useState("");
   const [zcashAddress, setZcashAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const trpc = useTRPC();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

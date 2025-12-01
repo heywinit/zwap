@@ -5,12 +5,13 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import bs58 from "bs58";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, trpc, trpcClient } from "@/utils/trpc";
+import { queryClient, useTRPC, trpcClient } from "@/utils/trpc";
 
 export function useWalletAuth() {
   const { publicKey, signMessage, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const trpc = useTRPC();
 
   const { data: session } = useQuery(trpc.auth.getSession.queryOptions());
 
