@@ -17,6 +17,14 @@
 		"typescript": "^5"
 	},
 	"dependencies": {
+<<<<<<< HEAD
+		"@coral-xyz/anchor": "^0.32.1",
+		"@solana/web3.js": "^1.95.8",
+		"@trpc/client": "catalog:",
+		"@trpc/server": "catalog:",
+		"@zwap/db": "workspace:*",
+		"@zwap/zcash": "workspace:*",
+=======
 		"@trpc/server": "catalog:",
 		"@trpc/client": "catalog:",
 		"next": "catalog:",
@@ -28,7 +36,14 @@
 		"@solana/web3.js": "^1.95.8",
 		"drizzle-orm": "^0.44.7",
 		"@coral-xyz/anchor": "^0.32.1",
+>>>>>>> 955ad1ad6763d3a4b209ae503ca137b9bbc11e89
 		"bs58": "^6.0.0",
-		"tweetnacl": "^1.0.3"
+		"dotenv": "catalog:",
+		"drizzle-orm": "^0.44.2",
+		"next": "catalog:",
+		"pg": "^8.14.1",
+		"tweetnacl": "^1.0.3",
+		"ws": "^8.18.0",
+		"zod": "catalog:"
 	}
 }

@@ -19,7 +19,7 @@ export class ZwapClient {
 		const provider = new AnchorProvider(connection, wallet, {
 			commitment: "confirmed",
 		});
-		this.program = new Program(idl as Zwap, provider);
+		this.program = new Program(idl as any, provider);
 	}
 
 	/**

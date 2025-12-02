@@ -27,6 +27,7 @@
 		"db:generate": "turbo -F @zwap/db db:generate",
 		"db:migrate": "turbo -F @zwap/db db:migrate",
 		"relayer": "cd packages/api && bun run src/scripts/start-relayer.ts",
+		"verify": "bun run scripts/verify-deployment.ts",
 		"setup": "bun run setup.sh",
 		"setup:windows": "powershell -ExecutionPolicy Bypass -File setup.ps1"
 	},

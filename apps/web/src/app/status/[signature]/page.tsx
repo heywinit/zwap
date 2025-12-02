@@ -22,7 +22,7 @@ export default function StatusPage() {
   const [pollInterval, setPollInterval] = useState(3000); // Poll every 3 seconds
 
   // Query deposit status using React Query + tRPC client
-  const { data: deposit, isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["deposit", "getBySignature", signature],
     queryFn: () => trpc.deposit.getBySignature.query({ signature }),
     refetchInterval: pollInterval,
@@ -31,10 +31,10 @@ export default function StatusPage() {
 
   // Stop polling once ZEC is sent
   useEffect(() => {
-    if (deposit?.status === "sent" || deposit?.status === "failed") {
+    if (data?.status === "sent" || data?.status === "failed") {
       setPollInterval(0);
     }
-  }, [deposit?.status]);
+  }, [data?.status]);
 
   if (isLoading) {
     return (
@@ -54,7 +54,7 @@ export default function StatusPage() {
     );
   }
 
-  if (error || !deposit) {
+  if (error || !data) {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
         <Card>
@@ -78,7 +78,7 @@ export default function StatusPage() {
   }
 
   const getStatusIcon = () => {
-    switch (deposit.status) {
+    switch (data.status) {
       case "sent":
         return <CheckCircle2 className="h-6 w-6 text-green-500" />;
       case "failed":
@@ -89,7 +89,7 @@ export default function StatusPage() {
   };
 
   const getStatusText = () => {
-    switch (deposit.status) {
+    switch (data.status) {
       case "sent":
         return "Completed";
       case "failed":
@@ -100,7 +100,7 @@ export default function StatusPage() {
   };
 
   const getStatusDescription = () => {
-    switch (deposit.status) {
+    switch (data.status) {
       case "sent":
         return "Your ZEC has been successfully sent to your shielded address";
       case "failed":
@@ -126,15 +126,15 @@ export default function StatusPage() {
             <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
               <div>
                 <p className="text-sm text-muted-foreground">Asset</p>
-                <p className="font-medium">{deposit.asset}</p>
+                <p className="font-medium">{data.asset}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Amount</p>
-                <p className="font-medium">{deposit.amount}</p>
+                <p className="font-medium">{data.amount}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Status</p>
-                <p className="font-medium capitalize">{deposit.status}</p>
+                <p className="font-medium capitalize">{data.status}</p>
               </div>
             </div>
 
@@ -143,21 +143,21 @@ export default function StatusPage() {
               <p className="text-sm text-muted-foreground mb-2">
                 Zcash Shielded Address
               </p>
-              <p className="font-mono text-sm break-all">{deposit.zAddress}</p>
+              <p className="font-mono text-sm break-all">{data.zAddress}</p>
             </div>
 
             {/* Solana Transaction */}
-            {deposit.solanaTx && (
+            {data.solanaTx && (
               <div className="p-4 bg-muted rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">
                   Solana Transaction
                 </p>
                 <div className="flex items-center justify-between">
                   <p className="font-mono text-sm truncate mr-2">
-                    {deposit.solanaTx}
+                    {data.solanaTx}
                   </p>
                   <a
-                    href={`https://solscan.io/tx/${deposit.solanaTx}?cluster=devnet`}
+                    href={`https://solscan.io/tx/${data.solanaTx}?cluster=devnet`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-primary hover:underline"
@@ -170,17 +170,17 @@ export default function StatusPage() {
             )}
 
             {/* Zcash Transaction */}
-            {deposit.zecTxid && (
+            {data.zecTxid && (
               <div className="p-4 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2">
                   Zcash Transaction ID
                 </p>
                 <div className="flex items-center justify-between">
                   <p className="font-mono text-sm truncate mr-2">
-                    {deposit.zecTxid}
+                    {data.zecTxid}
                   </p>
                   <a
-                    href={`https://zcashblockexplorer.com/transactions/${deposit.zecTxid}`}
+                    href={`https://zcashblockexplorer.com/transactions/${data.zecTxid}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-1 text-primary hover:underline"
@@ -193,7 +193,7 @@ export default function StatusPage() {
             )}
 
             {/* Processing Message */}
-            {deposit.status === "pending" && !deposit.zecTxid && (
+            {data.status === "pending" && !data.zecTxid && (
               <div className="p-4 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                 <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
                   <Clock className="h-4 w-4 animate-pulse" />
@@ -212,11 +212,11 @@ export default function StatusPage() {
           <div className="pt-4 border-t space-y-2 text-sm text-muted-foreground">
             <div className="flex justify-between">
               <span>Created</span>
-              <span>{new Date(deposit.createdAt).toLocaleString()}</span>
+              <span>{new Date(data.createdAt).toLocaleString()}</span>
             </div>
             <div className="flex justify-between">
               <span>Last Updated</span>
-              <span>{new Date(deposit.updatedAt).toLocaleString()}</span>
+              <span>{new Date(data.updatedAt).toLocaleString()}</span>
             </div>
           </div>
 
