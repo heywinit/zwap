@@ -14,6 +14,7 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletAuth } from "@/hooks/use-wallet-auth";
 import { Copy, ExternalLink, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 export function TopBar() {
   const { publicKey, disconnect } = useWallet();
@@ -43,9 +44,10 @@ export function TopBar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 px-4 items-center justify-between">
-        <div className="flex items-center gap-6">
-          <h1 className="text-xl font-semibold">ZWAP</h1>
-        </div>
+        <a href="/" className="flex items-center gap-2">
+          <Image src="/logo.png" alt="ZWAP" width={24} height={24} className="rounded" />
+          <span className="text-sm font-semibold tracking-wide">ZWAP</span>
+        </a>
 
         <div className="flex items-center gap-4">
           {isAuthenticated && publicKey ? (

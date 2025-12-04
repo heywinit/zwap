@@ -5,17 +5,15 @@ import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { toast } from "sonner";
 import { useWalletAuth } from "@/hooks/use-wallet-auth";
 import { Button } from "./ui/button";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 export function WalletConnectButton() {
 	const { publicKey, connected } = useWallet();
 	const { setVisible } = useWalletModal();
-	const { isAuthenticated, isLoading, signIn, signOut } = useWalletAuth();
-	const hasAttemptedAutoSignIn = useRef(false);
+	const { isAuthenticated, signIn, signOut } = useWalletAuth();
 
 	const handleConnect = async () => {
 		if (!connected) {
-			hasAttemptedAutoSignIn.current = true;
 			setVisible(true);
 			return;
 		}
@@ -32,38 +30,6 @@ export function WalletConnectButton() {
 		}
 	};
 
-	// Automatically sign in after wallet connects
-	useEffect(() => {
-		if (
-			connected &&
-			!isAuthenticated &&
-			!isLoading &&
-			hasAttemptedAutoSignIn.current &&
-			publicKey
-		) {
-			// Small delay to ensure wallet is ready
-			const timer = setTimeout(async () => {
-				try {
-					await signIn();
-					toast.success("Successfully signed in!");
-				} catch (error) {
-					toast.error(
-						error instanceof Error ? error.message : "Failed to sign in",
-					);
-				}
-			}, 100);
-
-			return () => clearTimeout(timer);
-		}
-	}, [connected, isAuthenticated, isLoading, publicKey, signIn]);
-
-	// Reset the flag when disconnected
-	useEffect(() => {
-		if (!connected) {
-			hasAttemptedAutoSignIn.current = false;
-		}
-	}, [connected]);
-
 	const handleDisconnect = async () => {
 		try {
 			await signOut();
@@ -77,7 +43,7 @@ export function WalletConnectButton() {
 
 	if (!connected) {
 		return (
-			<Button onClick={handleConnect} disabled={isLoading}>
+			<Button onClick={handleConnect}>
 				Connect Wallet
 			</Button>
 		);
@@ -85,8 +51,8 @@ export function WalletConnectButton() {
 
 	if (!isAuthenticated) {
 		return (
-			<Button onClick={handleConnect} disabled={isLoading}>
-				{isLoading ? "Signing in..." : "Sign In"}
+			<Button onClick={handleConnect}>
+				Sign In
 			</Button>
 		);
 	}
@@ -97,8 +63,8 @@ export function WalletConnectButton() {
 				{publicKey?.toString().slice(0, 4)}...
 				{publicKey?.toString().slice(-4)}
 			</span>
-			<Button onClick={handleDisconnect} disabled={isLoading} variant="outline">
-				{isLoading ? "Signing out..." : "Sign Out"}
+			<Button onClick={handleDisconnect} variant="outline">
+				Sign Out
 			</Button>
 		</div>
 	);

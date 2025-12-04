@@ -1,3 +1,48 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./theme.css";
+
+/* Modern crypto-inspired aesthetics */
+.bg-grid {
+	background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+	background-size: 24px 24px;
+}
+
+.glow:hover {
+	box-shadow: 0 0 30px rgba(99, 102, 241, 0.25);
+}
+
+@keyframes float {
+	0% { transform: translateY(0px); }
+	50% { transform: translateY(-3px); }
+	100% { transform: translateY(0px); }
+}
+
+.animate-float {
+	animation: float 6s ease-in-out infinite;
+}
+
+.fade-in {
+	animation: fadeIn 400ms ease-out both;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(6px); }
+	to { opacity: 1; transform: translateY(0); }
+}
+
+.card-hover {
+	transition: transform 200ms ease, box-shadow 200ms ease;
+}
+.card-hover:hover {
+	transform: translateY(-2px);
+}
+
+@keyframes marquee {
+	0% { transform: translateX(0); }
+	100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+	animation: marquee 30s linear infinite;
+}

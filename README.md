@@ -118,6 +118,38 @@ bun run check-types      # Type checking
 zwap/
 ├── apps/
 │   └── web/              # Next.js frontend
+
+### Live Mode Configuration
+
+Set these environment variables to enable real fees and Zcash RPC:
+
+- `USE_LIVE_RATES=true` — enable live fee estimation
+- `HELIUS_API_KEY=<your_key>` — Helius Priority Fee API key
+- `NEXT_PUBLIC_SOLANA_RPC_URL=https://<cluster>.helius-rpc.com/?api-key=<your_key>` — Solana RPC (mainnet/devnet)
+- `SOLANA_CLUSTER=mainnet` — cluster hint for services
+- `ZCASH_RPC_URL=http://127.0.0.1:8232` — zcashd JSON-RPC endpoint
+- `ZCASH_RPC_USER=<user>` — zcashd RPC username
+- `ZCASH_RPC_PASS=<pass>` — zcashd RPC password
+- `AUTO_GEN_ZADDR=true` — allow backend to generate shielded addresses via RPC
+- `DEMO_PRIVACY_PREMIUM=0.0005` — relayer premium fallback (scaled by speed)
+
+Notes:
+- Speed tiers map to priority fee percentiles: slow≈p50, normal≈p75, fast≈p95, with fallbacks.
+- If Helius or zcashd are unavailable, the backend uses safe demo estimates.
+
+### Quick Start (live)
+
+```bash
+$env:USE_LIVE_RATES="true"
+$env:HELIUS_API_KEY="<your_key>"
+$env:NEXT_PUBLIC_SOLANA_RPC_URL="https://mainnet.helius-rpc.com/?api-key=<your_key>"
+$env:SOLANA_CLUSTER="mainnet"
+$env:ZCASH_RPC_URL="http://127.0.0.1:8232"
+$env:ZCASH_RPC_USER="rpcuser"
+$env:ZCASH_RPC_PASS="rpcpass"
+$env:AUTO_GEN_ZADDR="true"
+bun dev
+```
 ├── packages/
 │   ├── api/              # tRPC API + Relayer
 │   ├── db/               # Database schema (Drizzle)

@@ -27,16 +27,26 @@ export function WalletProvider({ children }: WalletProviderProps) {
 	const network = WalletAdapterNetwork.Devnet; // Change to Mainnet when ready
 	const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-	// Configure supported wallets
-	const wallets = useMemo(
-		() => [
+	// Configure supported wallets with proper memoization and deduplication
+	const wallets = useMemo(() => {
+		const adapterList = [
 			new PhantomWalletAdapter(),
 			new SolflareWalletAdapter(),
 			new TorusWalletAdapter(),
 			new LedgerWalletAdapter(),
-		],
-		[],
-	);
+		];
+		
+		// Deduplicate by name to prevent duplicate key errors
+		const seen = new Set<string>();
+		return adapterList.filter((adapter) => {
+			const name = adapter.name;
+			if (seen.has(name)) {
+				return false;
+			}
+			seen.add(name);
+			return true;
+		});
+	}, []);
 
 	return (
 		<ConnectionProvider endpoint={endpoint}>

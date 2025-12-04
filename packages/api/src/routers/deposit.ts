@@ -3,6 +3,12 @@ import { router, publicProcedure } from "../index";
 import { db, deposits } from "@zwap/db";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import {
+	DEMO_MODE,
+	DEMO_ZEC_DELAY_MS,
+	getDemoRate,
+} from "../config";
+import { enqueueSimulation, getPhase } from "../jobs/simulator";
 
 // Zcash address validation regex
 const ZCASH_ADDRESS_REGEX = /^(z|u1)[a-zA-Z0-9]{50,95}$/;
@@ -24,7 +30,42 @@ export const depositRouter = router({
 		.mutation(async ({ input }) => {
 			const depositId = randomUUID();
 
-			// Insert deposit record
+			if (DEMO_MODE) {
+				const now = Date.now();
+				const rate = getDemoRate(input.asset);
+				const computedZecAmount = Number(input.amount) * rate;
+				const fakeSig = `demo-${depositId}`;
+
+				const [deposit] = await db
+					.insert(deposits)
+					.values({
+						depositId,
+						userPubkey: input.userPubkey,
+						asset: input.asset,
+						amount: input.amount,
+						zAddress: input.zAddress,
+						status: "pending", // underlying schema stays the same
+						solanaTx: fakeSig,
+					})
+					.returning();
+
+				enqueueSimulation(deposit.depositId, DEMO_ZEC_DELAY_MS, now);
+
+				return {
+					depositId: deposit.depositId,
+					id: deposit.id,
+					message: "Deposit created (simulated)",
+					demo_mode: true,
+					solana_tx_fake: {
+						signature: fakeSig,
+						blocktime: Math.floor(now / 1000),
+					},
+					computed_zec_amount: computedZecAmount,
+					demo_rate: rate,
+				};
+			}
+
+			// Real flow
 			const [deposit] = await db
 				.insert(deposits)
 				.values({
@@ -41,6 +82,7 @@ export const depositRouter = router({
 				depositId: deposit.depositId,
 				id: deposit.id,
 				message: "Deposit created successfully",
+				demo_mode: false,
 			};
 		}),
 
@@ -62,17 +104,24 @@ export const depositRouter = router({
 				throw new Error("Deposit not found");
 			}
 
+			const demo = DEMO_MODE;
+			const rate = demo ? getDemoRate(deposit.asset) : undefined;
+			const computedZecAmount = demo ? Number(deposit.amount) * (rate as number) : undefined;
+			const phase = demo ? getPhase(deposit.depositId) ?? "simulated_submitted" : undefined;
+
 			return {
 				id: deposit.id,
 				depositId: deposit.depositId,
 				asset: deposit.asset,
 				amount: deposit.amount,
 				zAddress: deposit.zAddress,
-				status: deposit.status,
+				status: demo ? phase : deposit.status,
 				solanaTx: deposit.solanaTx,
 				zecTxid: deposit.zecTxid,
 				createdAt: deposit.createdAt,
 				updatedAt: deposit.updatedAt,
+				demo_mode: demo,
+				computed_zec_amount: computedZecAmount,
 			};
 		}),
 
@@ -122,17 +171,24 @@ export const depositRouter = router({
 				throw new Error("Deposit not found");
 			}
 
+			const demo = DEMO_MODE;
+			const rate = demo ? getDemoRate(deposit.asset) : undefined;
+			const computedZecAmount = demo ? Number(deposit.amount) * (rate as number) : undefined;
+			const phase = demo ? getPhase(deposit.depositId) ?? "simulated_submitted" : undefined;
+
 			return {
 				id: deposit.id,
 				depositId: deposit.depositId,
 				asset: deposit.asset,
 				amount: deposit.amount,
 				zAddress: deposit.zAddress,
-				status: deposit.status,
+				status: demo ? phase : deposit.status,
 				solanaTx: deposit.solanaTx,
 				zecTxid: deposit.zecTxid,
 				createdAt: deposit.createdAt,
 				updatedAt: deposit.updatedAt,
+				demo_mode: demo,
+				computed_zec_amount: computedZecAmount,
 			};
 		}),
 });
