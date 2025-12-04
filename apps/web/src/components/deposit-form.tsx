@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { ZwapClient } from "@zwap/solana";
 import { useWalletAuth } from "@/hooks/use-wallet-auth";
-import { useTRPC, trpcClient } from "@/utils/trpc";
+import { trpc } from "@/utils/trpc";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -32,7 +32,6 @@ export function DepositForm() {
   const [amount, setAmount] = useState("");
   const [zcashAddress, setZcashAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const trpc = useTRPC();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +41,7 @@ export function DepositForm() {
       return;
     }
 
-    if (!amount || parseFloat(amount) <= 0) {
+    if (!amount || Number.parseFloat(amount) <= 0) {
       toast.error("Please enter a valid amount");
       return;
     }
@@ -62,7 +61,7 @@ export function DepositForm() {
     try {
       // 1. Create deposit record in backend
       toast.loading("Creating deposit...");
-      const deposit = await trpcClient.deposit.startDeposit.mutate({
+      const deposit = await trpc.deposit.startDeposit.mutate({
         asset: token,
         amount: amount,
         zAddress: zcashAddress,
@@ -74,29 +73,28 @@ export function DepositForm() {
 
       // 2. Create Solana transaction
       const connection = new Connection(
-        process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com",
+        process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
+          "https://api.devnet.solana.com",
         "confirmed"
       );
 
       const zwapClient = new ZwapClient(connection, { publicKey });
 
-      let transaction;
-      if (token === "SOL") {
-        transaction = await zwapClient.buildDepositSolTransaction(
-          publicKey,
-          parseFloat(amount),
-          deposit.depositId,
-          zcashAddress
-        );
-      } else {
-        transaction = await zwapClient.buildDepositUsdcTransaction(
-          publicKey,
-          parseFloat(amount),
-          deposit.depositId,
-          zcashAddress,
-          USDC_MINT
-        );
-      }
+      const transaction =
+        token === "SOL"
+          ? await zwapClient.buildDepositSolTransaction(
+              publicKey,
+              Number.parseFloat(amount),
+              deposit.depositId,
+              zcashAddress
+            )
+          : await zwapClient.buildDepositUsdcTransaction(
+              publicKey,
+              Number.parseFloat(amount),
+              deposit.depositId,
+              zcashAddress,
+              USDC_MINT
+            );
 
       // 3. Sign transaction
       toast.dismiss();
@@ -116,7 +114,7 @@ export function DepositForm() {
       await connection.confirmTransaction(signature, "confirmed");
 
       // 6. Update backend with signature
-      await trpcClient.deposit.updateSolanaTx.mutate({
+      await trpc.deposit.updateSolanaTx.mutate({
         depositId: deposit.depositId,
         solanaTx: signature,
       });
@@ -139,7 +137,7 @@ export function DepositForm() {
 
   if (!isAuthenticated) {
     return (
-      <Card className="max-w-md mx-auto">
+      <Card className="mx-auto max-w-md">
         <CardHeader>
           <CardTitle>Connect Wallet</CardTitle>
           <CardDescription>
@@ -151,7 +149,7 @@ export function DepositForm() {
   }
 
   return (
-    <Card className="max-w-md mx-auto">
+    <Card className="mx-auto max-w-md">
       <CardHeader>
         <CardTitle>Deposit to Zcash</CardTitle>
         <CardDescription>

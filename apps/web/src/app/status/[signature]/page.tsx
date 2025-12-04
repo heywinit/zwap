@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { queryClient, trpcClient } from "@/utils/trpc";
 import { useQuery } from "@tanstack/react-query";
+import { trpc } from "@/utils/trpc";
 import {
   Card,
   CardContent,
@@ -15,16 +15,19 @@ import {
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, Clock, ExternalLink, XCircle } from "lucide-react";
+import ZkHealthWidget from "@/components/zkHealthWidget";
+import PipelineStepper from "@/components/pipelineStepper";
+import ReceiptDownloader from "@/components/receiptDownloader";
 
 export default function StatusPage() {
   const params = useParams();
   const signature = params.signature as string;
   const [pollInterval, setPollInterval] = useState(3000); // Poll every 3 seconds
 
-  // Query deposit status using trpc client directly
+  // Query deposit status using React Query + tRPC client
   const { data, isLoading, error } = useQuery({
-    queryKey: ["deposit.getBySignature", { signature }],
-    queryFn: () => trpcClient.deposit.getBySignature.query({ signature }),
+    queryKey: ["deposit", "getBySignature", signature],
+    queryFn: () => trpc.deposit.getBySignature.query({ signature }),
     refetchInterval: pollInterval,
     enabled: !!signature,
   });
@@ -77,6 +80,8 @@ export default function StatusPage() {
     );
   }
 
+  const demoMode = Boolean((data as any)?.demo_mode);
+
   const getStatusIcon = () => {
     switch (data.status) {
       case "sent":
@@ -112,6 +117,7 @@ export default function StatusPage() {
 
   return (
     <div className="container mx-auto py-8 max-w-2xl">
+      <ZkHealthWidget />
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -121,6 +127,17 @@ export default function StatusPage() {
           <CardDescription>{getStatusDescription()}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <PipelineStepper
+            status={String(data.status)}
+            demoMode={Boolean((data as any)?.demo_mode)}
+            timestamps={{
+              lock: (data as any)?.solana_tx_fake?.blocktime
+                ? Number((data as any).solana_tx_fake.blocktime) * 1000
+                : data.createdAt,
+              commit: data.updatedAt,
+              nullify: data.zecTxid ? data.updatedAt : undefined,
+            }}
+          />
           {/* Deposit Info */}
           <div className="space-y-4">
             <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
@@ -156,15 +173,19 @@ export default function StatusPage() {
                   <p className="font-mono text-sm truncate mr-2">
                     {data.solanaTx}
                   </p>
-                  <a
-                    href={`https://solscan.io/tx/${data.solanaTx}?cluster=devnet`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-primary hover:underline"
-                  >
-                    View
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  {demoMode ? (
+                    <span className="text-muted-foreground text-xs">demo — link disabled</span>
+                  ) : (
+                    <a
+                      href={`https://solscan.io/tx/${data.solanaTx}?cluster=devnet`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                    >
+                      View
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
                 </div>
               </div>
             )}
@@ -179,15 +200,19 @@ export default function StatusPage() {
                   <p className="font-mono text-sm truncate mr-2">
                     {data.zecTxid}
                   </p>
-                  <a
-                    href={`https://zcashblockexplorer.com/transactions/${data.zecTxid}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1 text-primary hover:underline"
-                  >
-                    View
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  {demoMode ? (
+                    <span className="text-muted-foreground text-xs">demo — link disabled</span>
+                  ) : (
+                    <a
+                      href={`https://zcashblockexplorer.com/transactions/${data.zecTxid}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                    >
+                      View
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                  )}
                 </div>
               </div>
             )}
@@ -227,6 +252,9 @@ export default function StatusPage() {
                 Make Another Deposit
               </Button>
             </Link>
+            {(data.status === "sent" || (data as any)?.demo_mode) && (
+              <ReceiptDownloader depositId={data.depositId} />
+            )}
           </div>
         </CardContent>
       </Card>

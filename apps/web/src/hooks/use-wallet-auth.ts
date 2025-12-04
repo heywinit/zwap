@@ -4,16 +4,19 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import bs58 from "bs58";
 import { useCallback, useEffect, useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, useTRPC, trpcClient } from "@/utils/trpc";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { queryClient, trpc } from "@/utils/trpc";
 
 export function useWalletAuth() {
   const { publicKey, signMessage, connected, disconnect } = useWallet();
   const { setVisible } = useWalletModal();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const trpc = useTRPC();
 
-  const { data: session } = useQuery(trpc.auth.getSession.queryOptions());
+  // Query session using React Query + tRPC client
+  const { data: session } = useQuery({
+    queryKey: ["auth", "getSession"],
+    queryFn: () => trpc.auth.getSession.query(),
+  });
 
   const signInMutation = useMutation({
     mutationFn: async (input: {
@@ -22,14 +25,14 @@ export function useWalletAuth() {
       message: string;
       timestamp?: number;
     }) => {
-      return await trpcClient.auth.signIn.mutate(input);
+      return await trpc.auth.signIn.mutate(input);
     },
     onSuccess: async (result) => {
       if (result.success) {
         setIsAuthenticated(true);
         localStorage.setItem("solana_session", JSON.stringify(result.session));
         await queryClient.invalidateQueries({
-          queryKey: [["auth", "getSession"]],
+          queryKey: ["auth", "getSession"],
         });
       }
     },
@@ -37,14 +40,14 @@ export function useWalletAuth() {
 
   const signOutMutation = useMutation({
     mutationFn: async () => {
-      return await trpcClient.auth.signOut.mutate();
+      return await trpc.auth.signOut.mutate();
     },
     onSuccess: async () => {
       localStorage.removeItem("solana_session");
       setIsAuthenticated(false);
       await disconnect();
       await queryClient.invalidateQueries({
-        queryKey: [["auth", "getSession"]],
+        queryKey: ["auth", "getSession"],
       });
     },
   });
